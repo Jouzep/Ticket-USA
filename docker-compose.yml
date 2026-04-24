@@ -1,0 +1,66 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: winit-backend
+    ports:
+      - "8001:8000"
+    environment:
+      APP_ENV: development
+      LOG_LEVEL: INFO
+      SCRAPER_MODE: ${SCRAPER_MODE:-mock}
+      ALLOWED_ORIGINS: http://localhost:3001,http://frontend:3000
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      CLAUDE_MODEL: ${CLAUDE_MODEL:-claude-sonnet-4-6}
+      BROWSER_POOL_SIZE: ${BROWSER_POOL_SIZE:-3}
+      MAX_TICKETS_PER_JOB: ${MAX_TICKETS_PER_JOB:-500}
+      MAX_CONCURRENT_SCRAPES: ${MAX_CONCURRENT_SCRAPES:-5}
+      SSE_HEARTBEAT_INTERVAL: "15"
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/tests:/app/tests
+    init: true
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request, sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health', timeout=2).status==200 else 1)"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: dev
+    container_name: winit-frontend
+    ports:
+      - "3001:3000"
+    environment:
+      # Browser-side: SSE goes directly to FastAPI (avoids Next.js proxy timeouts)
+      NEXT_PUBLIC_API_URL: http://localhost:8001
+      # Server-side: route handlers reach FastAPI through the docker network
+      INTERNAL_API_URL: http://backend:8000
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+      NEXT_TELEMETRY_DISABLED: "1"
+    volumes:
+      - ./frontend/app:/app/app
+      - ./frontend/components:/app/components
+      - ./frontend/hooks:/app/hooks
+      - ./frontend/lib:/app/lib
+      - ./frontend/types:/app/types
+      - ./frontend/public:/app/public
+      - ./frontend/next.config.ts:/app/next.config.ts
+      - ./frontend/tailwind.config.ts:/app/tailwind.config.ts
+      - ./frontend/postcss.config.mjs:/app/postcss.config.mjs
+      - ./frontend/tsconfig.json:/app/tsconfig.json
+      - ./frontend/components.json:/app/components.json
+    depends_on:
+      backend:
+        condition: service_healthy
