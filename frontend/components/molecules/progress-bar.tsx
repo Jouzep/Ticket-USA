@@ -1,7 +1,7 @@
 import { Activity, CheckCircle2, Loader2, XCircle } from "lucide-react";
 
-import { Card } from "@/components/ui/card";
-import { Progress, ProgressShimmer } from "@/components/ui/progress";
+import { Card } from "@/components/atoms/card";
+import { Progress, ProgressShimmer } from "@/components/atoms/progress";
 import type { StreamStatus } from "@/types/events";
 
 interface Props {

@@ -1,5 +1,5 @@
-import { Dashboard } from "@/components/dashboard";
-import { Hero } from "@/components/hero";
+import { Dashboard } from "@/components/organisms/dashboard";
+import { Hero } from "@/components/organisms/hero";
 
 export default function Home() {
   return (

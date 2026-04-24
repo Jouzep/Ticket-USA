@@ -13,10 +13,10 @@ import {
 import { useCallback, useId, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/atoms/alert";
+import { Badge } from "@/components/atoms/badge";
+import { Button } from "@/components/atoms/button";
+import { Card } from "@/components/atoms/card";
 import {
   Table,
   TableBody,
@@ -24,11 +24,12 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+} from "@/components/atoms/table";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/atoms/tooltip";
+import { ApiError } from "@/hooks/use-client-query";
+import { useCreateJob } from "@/hooks/use-create-job";
 import { useCsvUpload } from "@/hooks/use-csv-upload";
 import { useHealth } from "@/hooks/use-health";
-import { ApiError, createJob } from "@/lib/api-client";
 import { downloadSampleCsv } from "@/lib/sample-csv";
 import { cn } from "@/lib/utils";
 import type { ScraperMode } from "@/types/events";
@@ -41,10 +42,11 @@ export function UploadZone({ onJobCreated }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const helpId = useId();
   const [dragOver, setDragOver] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
   const [scraperMode, setScraperMode] = useState<ScraperMode>("mock");
   const { file, preview, error, parsing, parseFile, reset } = useCsvUpload();
-  const { health } = useHealth();
+  const { data: health } = useHealth();
+  const createJob = useCreateJob();
+  const submitting = createJob.isPending;
 
   const handleFiles = useCallback(
     (files: FileList | null) => {
@@ -65,39 +67,41 @@ export function UploadZone({ onJobCreated }: Props) {
 
   const openPicker = useCallback(() => inputRef.current?.click(), []);
 
-  const onSubmit = useCallback(async () => {
+  const onSubmit = useCallback(() => {
     if (!file) return;
-    setSubmitting(true);
-    try {
-      const res = await createJob(file, scraperMode);
-      toast.success(
-        `Job started — ${res.total_tickets} tickets queued (${scraperMode})`,
-      );
-      onJobCreated(res.job_id, res.total_tickets);
-      reset();
-    } catch (err) {
-      if (err instanceof ApiError) {
-        const validations = err.validationErrors;
-        if (validations.length > 0) {
-          toast.error(
-            `CSV validation failed (${validations.length} error${validations.length > 1 ? "s" : ""})`,
-            {
-              description: validations
-                .slice(0, 3)
-                .map((v) => `Row ${v.row}: ${v.message}`)
-                .join("\n"),
-            },
+    createJob.mutate(
+      { file, scraperMode },
+      {
+        onSuccess: (res) => {
+          toast.success(
+            `Job started — ${res.total_tickets} tickets queued (${scraperMode})`,
           );
-        } else {
-          toast.error(err.message);
-        }
-      } else {
-        toast.error("Upload failed", { description: String(err) });
-      }
-    } finally {
-      setSubmitting(false);
-    }
-  }, [file, onJobCreated, reset, scraperMode]);
+          onJobCreated(res.job_id, res.total_tickets);
+          reset();
+        },
+        onError: (err) => {
+          if (err instanceof ApiError) {
+            const validations = err.validationErrors;
+            if (validations.length > 0) {
+              toast.error(
+                `CSV validation failed (${validations.length} error${validations.length > 1 ? "s" : ""})`,
+                {
+                  description: validations
+                    .slice(0, 3)
+                    .map((v) => `Row ${v.row}: ${v.message}`)
+                    .join("\n"),
+                },
+              );
+            } else {
+              toast.error(err.message);
+            }
+          } else {
+            toast.error("Upload failed", { description: String(err) });
+          }
+        },
+      },
+    );
+  }, [createJob, file, onJobCreated, reset, scraperMode]);
 
   const hasMissing = preview ? preview.missingColumns.length > 0 : false;
   const canSubmit = Boolean(file && preview && !hasMissing && !submitting);

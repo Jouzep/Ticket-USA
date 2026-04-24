@@ -1,6 +1,6 @@
 import { FileSpreadsheet } from "lucide-react";
 
-import { Card } from "@/components/ui/card";
+import { Card } from "@/components/atoms/card";
 
 export function EmptyState() {
   return (

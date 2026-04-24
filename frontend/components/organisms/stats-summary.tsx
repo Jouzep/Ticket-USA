@@ -7,7 +7,7 @@ import {
   XCircle,
 } from "lucide-react";
 
-import { Card } from "@/components/ui/card";
+import { Card } from "@/components/atoms/card";
 import { cn, formatUsd } from "@/lib/utils";
 
 interface SummaryProps {

@@ -3,9 +3,9 @@
 import { ArrowDown, ArrowUp, Download, Inbox } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { StatusBadge } from "@/components/status-badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { StatusBadge } from "@/components/atoms/status-badge";
+import { Button } from "@/components/atoms/button";
+import { Card } from "@/components/atoms/card";
 import {
   Table,
   TableBody,
@@ -13,12 +13,12 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/components/atoms/table";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@/components/atoms/tooltip";
 import { downloadResultsCsv } from "@/lib/csv-export";
 import { cn, formatUsd } from "@/lib/utils";
 import type { TicketResult } from "@/types/events";

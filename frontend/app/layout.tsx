@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 
-import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/atoms/sonner";
+
+import { Providers } from "./providers";
 import "./globals.css";
 
 const inter = Inter({
@@ -45,9 +46,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${mono.variable}`}>
       <body>
-        <TooltipProvider delayDuration={150}>
-          {children}
-        </TooltipProvider>
+        <Providers>{children}</Providers>
         <Toaster />
       </body>
     </html>

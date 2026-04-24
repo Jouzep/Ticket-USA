@@ -1,27 +1,11 @@
-"use client";
-
-import { useEffect, useState } from "react";
-
-import { getHealth } from "@/lib/api-client";
+import { PUBLIC_API_URL } from "@/lib/env";
 import type { HealthResponse } from "@/types/events";
 
-export function useHealth() {
-  const [health, setHealth] = useState<HealthResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
+import { useClientQuery } from "./use-client-query";
 
-  useEffect(() => {
-    let cancelled = false;
-    getHealth()
-      .then((h) => {
-        if (!cancelled) setHealth(h);
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : String(err));
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  return { health, error };
-}
+export const useHealth = () =>
+  useClientQuery<HealthResponse>({
+    keys: ["health"],
+    url: `${PUBLIC_API_URL}/health`,
+    options: { staleTime: 60_000 },
+  });

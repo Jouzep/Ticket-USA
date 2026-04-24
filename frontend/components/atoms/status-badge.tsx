@@ -1,4 +1,4 @@
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/atoms/badge";
 import type { TicketStatusValue } from "@/types/events";
 
 const VARIANT: Record<TicketStatusValue, "success" | "warning" | "danger" | "info" | "neutral"> = {

@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, CheckCircle2, Search, ShieldAlert, XCircle } from "lucide-react";
 
-import { Card } from "@/components/ui/card";
+import { Card } from "@/components/atoms/card";
 import { formatTime, formatUsd } from "@/lib/utils";
 import type { FeedEntry } from "@/types/events";
 
